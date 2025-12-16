@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PKD YAN - Dashboard Logistik & Kewangan 2025</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #c0392b;
+        }
+
+        body {
+            background-color: #f4f6f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 0.9rem;
+        }
+
+        .header-main {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 0;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .nav-tabs .nav-link {
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+
+        .nav-tabs .nav-link.active {
+            color: var(--accent-color);
+            border-top: 3px solid var(--accent-color);
+        }
+
+        .card-dashboard {
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+
+        .card-dashboard:hover {
+            transform: translateY(-5px);
+        }
+
+        .kpi-card-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
+        .table-input th {
+            background-color: var(--secondary-color);
+            color: white;
+            font-size: 0.85rem;
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        .table-input input, .table-input select {
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 4px;
+            width: 100%;
+            font-size: 0.85rem;
+        }
+
+        .table-input input:focus {
+            border-color: var(--accent-color);
+            outline: none;
+        }
+
+        .bg-readonly {
+            background-color: #e9ecef;
+            font-weight: bold;
+            text-align: right;
+        }
+        
+        .tab-content {
+            background: white;
+            padding: 20px;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+<body>
+
+<div class="header-main">
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h4 class="mb-0"><i class="fas fa-hospital-alt me-2"></i>PEJABAT KESIHATAN DAERAH YAN</h4>
+                <small>Laporan Terperinci Logistik & Kewangan 2025 (Farmasi)</small>
+            </div>
+            <div>
+                <button class="btn btn-sm btn-light text-dark" onclick="window.print()"><i class="fas fa-print me-1"></i> Cetak</button>
+                <button class="btn btn-sm btn-success" onclick="updateDashboard()"><i class="fas fa-sync-alt me-1"></i> Kemaskini Dashboard</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid mb-5">
+    <ul class="nav nav-tabs" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="dashboard-tab" data-bs-toggle="tab" data-bs-target="#dashboard" type="button" role="tab"><i class="fas fa-chart-line me-2"></i>Dashboard</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="lbpp-tab" data-bs-toggle="tab" data-bs-target="#lbpp" type="button" role="tab"><i class="fas fa-file-invoice-dollar me-2"></i>LBPP (Kewangan)</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="lbi-tab" data-bs-toggle="tab" data-bs-target="#lbi" type="button" role="tab"><i class="fas fa-boxes me-2"></i>LBI (Inventori)</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="kpi-tab" data-bs-toggle="tab" data-bs-target="#kpi" type="button" role="tab"><i class="fas fa-tasks me-2"></i>KPI & SIQ</button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="myTabContent">
+        
+        <div class="tab-pane fade show active" id="dashboard" role="tabpanel">
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card card-dashboard border-start border-4 border-primary">
+                        <div class="card-body">
+                            <h6 class="text-muted text-uppercase">Jumlah Peruntukan</h6>
+                            <div class="kpi-card-value text-primary" id="dash-alloc">RM 5,370,352.29</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card card-dashboard border-start border-4 border-danger">
+                        <div class="card-body">
+                            <h6 class="text-muted text-uppercase">Perbelanjaan Bersih</h6>
+                            <div class="kpi-card-value text-danger" id="dash-expense">RM 5,369,969.63</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card card-dashboard border-start border-4 border-success">
+                        <div class="card-body">
+                            <h6 class="text-muted text-uppercase">Baki Peruntukan</h6>
+                            <div class="kpi-card-value text-success" id="dash-balance">RM 17.88</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card card-dashboard border-start border-4 border-warning">
+                        <div class="card-body">
+                            <h6 class="text-muted text-uppercase">% Perbelanjaan</h6>
+                            <div class="kpi-card-value text-warning" id="dash-percent">99.99%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-header bg-white font-weight-bold">Prestasi Perbelanjaan Mengikut Objek (2025)</div>
+                        <div class="card-body">
+                            <canvas id="objekChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-header bg-white font-weight-bold">Analisis Vot (080700 vs 990100)</div>
+                        <div class="card-body">
+                            <canvas id="votChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-header bg-white font-weight-bold">Trend Simpanan Stok (KPI) - Bulan</div>
+                        <div class="card-body">
+                            <canvas id="kpiTrendChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-header bg-white font-weight-bold">Pengeluaran Stok Intra vs Inter</div>
+                        <div class="card-body">
+                            <canvas id="stockDistChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="lbpp" role="tabpanel">
+            <div class="d-flex justify-content-between mb-3">
+                <h5>Laporan Bulanan Peruntukan & Perbelanjaan (LBPP)</h5>
+                <button class="btn btn-sm btn-primary" onclick="addLbppRow()"><i class="fas fa-plus"></i> Tambah Item</button>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-bordered table-sm table-hover table-input" id="lbppTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 15%">PTJ</th>
+                            <th style="width: 10%">Objek (OL)</th>
+                            <th style="width: 10%">Vot</th>
+                            <th>Aktiviti / Program</th>
+                            <th style="width: 10%">Peruntukan (RM)</th>
+                            <th style="width: 10%">Tambahan/Pindah (RM)</th>
+                            <th style="width: 10%">Perbelanjaan (RM)</th>
+                            <th style="width: 10%">Tanggungan (RM)</th>
+                            <th style="width: 10%">Baki (RM)</th>
+                            <th style="width: 5%">%</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        </tbody>
+                    <tfoot class="table-light">
+                        <tr>
+                            <td colspan="4" class="text-end fw-bold">JUMLAH KESELURUHAN:</td>
+                            <td><input type="text" id="total_alloc" class="bg-readonly form-control-sm" readonly></td>
+                            <td><input type="text" id="total_add" class="bg-readonly form-control-sm" readonly></td>
+                            <td><input type="text" id="total_exp" class="bg-readonly form-control-sm" readonly></td>
+                            <td><input type="text" id="total_liab" class="bg-readonly form-control-sm" readonly></td>
+                            <td><input type="text" id="total_bal" class="bg-readonly form-control-sm" readonly></td>
+                            <td><input type="text" id="total_perc" class="bg-readonly form-control-sm" readonly></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="lbi" role="tabpanel">
+            <div class="d-flex justify-content-between mb-3">
+                <h5>Laporan Bulanan Inventori (LBI)</h5>
+                <button class="btn btn-sm btn-primary" onclick="addLbiRow()"><i class="fas fa-plus"></i> Tambah Fasiliti</button>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-bordered table-sm table-hover table-input" id="lbiTable">
+                    <thead>
+                        <tr>
+                            <th>PTJ</th>
+                            <th>Kategori (OL)</th>
+                            <th>Stok Permulaan</th>
+                            <th>Terima (Perolehan)</th>
+                            <th>Terima (Sumber Lain)</th>
+                            <th>Keluar (Intra)</th>
+                            <th>Keluar (Inter)</th>
+                            <th>Baki Stok Akhir</th>
+                            <th>Purata Guna (RM)</th>
+                            <th>Simpanan (Bulan)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="kpi" role="tabpanel">
+            <div class="row">
+                <div class="col-md-8">
+                    <h5 class="mb-3">Rekod KPI Simpanan Stok Ubat & Vaksin</h5>
+                    <table class="table table-bordered table-sm table-input" id="kpiTable">
+                        <thead>
+                            <tr>
+                                <th>PTJ</th>
+                                <th>Jan</th>
+                                <th>Feb</th>
+                                <th>Mar</th>
+                                <th>Apr</th>
+                                <th>May</th>
+                                <th>Jun</th>
+                                <th>Jul</th>
+                                <th>Aug</th>
+                                <th>Sep</th>
+                                <th>Oct</th>
+                                <th>Nov</th>
+                                <th>Dec</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>PKD Yan</td>
+                                <td><input type="number" step="0.01" value="1.99"></td>
+                                <td><input type="number" step="0.01" value="1.96"></td>
+                                <td><input type="number" step="0.01" value="1.71"></td>
+                                <td><input type="number" step="0.01" value="1.56"></td>
+                                <td><input type="number" step="0.01" value="1.96"></td>
+                                <td><input type="number" step="0.01" value="2.03"></td>
+                                <td><input type="number" step="0.01" value="1.91"></td>
+                                <td><input type="number" step="0.01" value="1.53"></td>
+                                <td><input type="number" step="0.01" value="1.71"></td>
+                                <td><input type="number" step="0.01" value="1.67"></td>
+                                <td><input type="number" step="0.01" value="2.32"></td>
+                                <td><input type="number" step="0.01" value=""></td>
+                            </tr>
+                            <tr>
+                                <td>KK Guar Chempedak</td>
+                                <td><input type="number" step="0.01" value="2.78"></td>
+                                <td><input type="number" step="0.01" value="1.72"></td>
+                                <td><input type="number" step="0.01" value="1.44"></td>
+                                <td><input type="number" step="0.01" value="1.53"></td>
+                                <td><input type="number" step="0.01" value="1.46"></td>
+                                <td><input type="number" step="0.01" value="1.31"></td>
+                                <td><input type="number" step="0.01" value="1.15"></td>
+                                <td><input type="number" step="0.01" value="1.05"></td>
+                                <td><input type="number" step="0.01" value="0.80"></td>
+                                <td><input type="number" step="0.01" value="1.08"></td>
+                                <td><input type="number" step="0.01" value="2.57"></td>
+                                <td><input type="number" step="0.01" value=""></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">Status SIQ</div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Status Semakan Verifikasi</label>
+                                <select class="form-select">
+                                    <option>TAHNIAH !!! CEMERLANG</option>
+                                    <option>PERLU PENAMBAHBAIKAN</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Justifikasi Pencapaian</label>
+                                <textarea class="form-control" rows="3">Semua PTJ mencapai sasaran KPI kecuali KK Permatang Buluh disebabkan isu pembekalan APPL.</textarea>
+                            </div>
+                            <div class="alert alert-success">
+                                <strong>Verifikasi:</strong> Data telah disemak oleh Salina Binti Mohd Saad pada 2025-12-04.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // --- Initial Data Loading (Based on Uploaded CSVs) ---
+    const ptjList = ["UFL", "KK Guar Chempedak", "KK Sg. Limau Dalam", "KK Permatang Buluh", "PKD Yan"];
+    const objectList = ["27401 (Ubat)", "27402 (Reagen)", "27403 (X-Ray)", "27404 (Konsumabel)", "27499 (Lain-Lain)"];
+    
+    // Sample Data for LBPP (Simplified from CSV)
+    const lbppData = [
+        {ptj: "UFL", obj: "27401 (Ubat)", vot: "080700", desc: "Ubat Perubatan", alloc: 1568000, add: 0, exp: 1567999.57, liab: 0},
+        {ptj: "UFL", obj: "27401 (Ubat)", vot: "990100", desc: "Ubat Kesihatan Awam", alloc: 2685000, add: 0, exp: 2684634.97, liab: 364.79},
+        {ptj: "UFL", obj: "27403 (X-Ray)", vot: "080700", desc: "Filem X-Ray", alloc: 227700, add: 0, exp: 227700.00, liab: 0},
+        {ptj: "UFL", obj: "27404 (Kons)", vot: "990100", desc: "Konsumabel Perubatan", alloc: 358975.54, add: 0, exp: 358975.54, liab: 0},
+        {ptj: "KK Guar Chempedak", obj: "27401 (Ubat)", vot: "080400", desc: "Kecemasan", alloc: 5000, add: 0, exp: 4500.00, liab: 0},
+        {ptj: "KK Sg. Limau", obj: "27499 (Lain)", vot: "080700", desc: "Wound Care", alloc: 78000, add: 0, exp: 78000, liab: 0}
+    ];
+
+    // Sample Data for LBI (Simplified from CSV)
+    const lbiData = [
+        {ptj: "UFL", cat: "27401", open: 10813, rec: 476520, src_other: 0, out_intra: 463880, out_inter: 8486},
+        {ptj: "KK Guar Chempedak", cat: "27401", open: 129591, rec: 1539098, src_other: 9139, out_intra: 1350382, out_inter: 11209},
+        {ptj: "KK Sg. Limau Dalam", cat: "27401", open: 41598, rec: 519546, src_other: 730, out_intra: 443711, out_inter: 2886},
+        {ptj: "KK Permatang Buluh", cat: "27401", open: 12626, rec: 145747, src_other: 13049, out_intra: 125228, out_inter: 0}
+    ];
+
+    // --- Chart Objects ---
+    let objekChart, votChart, kpiTrendChart, stockDistChart;
+
+    // --- Initialization ---
+    document.addEventListener('DOMContentLoaded', function() {
+        populateLbppTable();
+        populateLbiTable();
+        calculateLbppTotals();
+        calculateLbiRows();
+        initCharts();
+        updateDashboard(); // Initial Calculation
+    });
+
+    // --- LBPP Functions ---
+    function populateLbppTable() {
+        const tbody = document.querySelector('#lbppTable tbody');
+        lbppData.forEach(row => {
+            addLbppRow(row);
+        });
+    }
+
+    function addLbppRow(data = {}) {
+        const tbody = document.querySelector('#lbppTable tbody');
+        const tr = document.createElement('tr');
+        
+        tr.innerHTML = `
+            <td><select class="form-select form-select-sm">${ptjList.map(p => `<option ${data.ptj===p?'selected':''}>${p}</option>`).join('')}</select></td>
+            <td><select class="form-select form-select-sm on-change-calc">${objectList.map(o => `<option ${data.obj===o?'selected':''}>${o}</option>`).join('')}</select></td>
+            <td><select class="form-select form-select-sm on-change-calc"><option ${data.vot==='080700'?'selected':''}>080700</option><option ${data.vot==='990100'?'selected':''}>990100</option><option ${data.vot==='080400'?'selected':''}>080400</option></select></td>
+            <td><input type="text" class="form-control form-control-sm" value="${data.desc || ''}"></td>
+            <td><input type="number" class="form-control form-control-sm text-end on-change-calc val-alloc" value="${data.alloc || 0}" step="0.01"></td>
+            <td><input type="number" class="form-control form-control-sm text-end on-change-calc val-add" value="${data.add || 0}" step="0.01"></td>
+            <td><input type="number" class="form-control form-control-sm text-end on-change-calc val-exp" value="${data.exp || 0}" step="0.01"></td>
+            <td><input type="number" class="form-control form-control-sm text-end on-change-calc val-liab" value="${data.liab || 0}" step="0.01"></td>
+            <td><input type="text" class="form-control form-control-sm text-end bg-readonly val-bal" readonly></td>
+            <td><input type="text" class="form-control form-control-sm text-end bg-readonly val-perc" readonly></td>
+        `;
+        tbody.appendChild(tr);
+
+        // Add Event Listeners for dynamic calculation
+        tr.querySelectorAll('.on-change-calc').forEach(input => {
+            input.addEventListener('input', calculateLbppTotals);
+            input.addEventListener('change', calculateLbppTotals); // For selects
+        });
+    }
+
+    function calculateLbppTotals() {
+        let tAlloc = 0, tAdd = 0, tExp = 0, tLiab = 0;
+        
+        document.querySelectorAll('#lbppTable tbody tr').forEach(tr => {
+            const alloc = parseFloat(tr.querySelector('.val-alloc').value) || 0;
+            const add = parseFloat(tr.querySelector('.val-add').value) || 0;
+            const exp = parseFloat(tr.querySelector('.val-exp').value) || 0;
+            const liab = parseFloat(tr.querySelector('.val-liab').value) || 0;
+            
+            const totalAlloc = alloc + add;
+            const totalUsed = exp + liab;
+            const balance = totalAlloc - totalUsed;
+            const percent = totalAlloc > 0 ? (totalUsed / totalAlloc) * 100 : 0;
+
+            tr.querySelector('.val-bal').value = balance.toFixed(2);
+            tr.querySelector('.val-perc').value = percent.toFixed(2) + '%';
+
+            if(balance < 0) tr.querySelector('.val-bal').classList.add('text-danger');
+            else tr.querySelector('.val-bal').classList.remove('text-danger');
+
+            tAlloc += alloc;
+            tAdd += add;
+            tExp += exp;
+            tLiab += liab;
+        });
+
+        const grandAlloc = tAlloc + tAdd;
+        const grandUsed = tExp + tLiab;
+        const grandBal = grandAlloc - grandUsed;
+        const grandPerc = grandAlloc > 0 ? (grandUsed / grandAlloc) * 100 : 0;
+
+        document.getElementById('total_alloc').value = tAlloc.toFixed(2);
+        document.getElementById('total_add').value = tAdd.toFixed(2);
+        document.getElementById('total_exp').value = tExp.toFixed(2);
+        document.getElementById('total_liab').value = tLiab.toFixed(2);
+        document.getElementById('total_bal').value = grandBal.toFixed(2);
+        document.getElementById('total_perc').value = grandPerc.toFixed(2) + '%';
+        
+        // Update Dashboard Cards
+        document.getElementById('dash-alloc').innerText = 'RM ' + grandAlloc.toLocaleString('en-US', {minimumFractionDigits: 2});
+        document.getElementById('dash-expense').innerText = 'RM ' + grandUsed.toLocaleString('en-US', {minimumFractionDigits: 2});
+        document.getElementById('dash-balance').innerText = 'RM ' + grandBal.toLocaleString('en-US', {minimumFractionDigits: 2});
+        document.getElementById('dash-percent').innerText = grandPerc.toFixed(2) + '%';
+    }
+
+    // --- LBI Functions ---
+    function populateLbiTable() {
+        lbiData.forEach(row => addLbiRow(row));
+    }
+
+    function addLbiRow(data = {}) {
+        const tbody = document.querySelector('#lbiTable tbody');
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><select class="form-select form-select-sm">${ptjList.map(p => `<option ${data.ptj===p?'selected':''}>${p}</option>`).join('')}</select></td>
+            <td><select class="form-select form-select-sm">${objectList.map(o => `<option ${data.cat===o?'selected':''}>${o}</option>`).join('')}</select></td>
+            <td><input type="number" class="form-control form-control-sm text-end lbi-input open" value="${data.open||0}"></td>
+            <td><input type="number" class="form-control form-control-sm text-end lbi-input rec" value="${data.rec||0}"></td>
+            <td><input type="number" class="form-control form-control-sm text-end lbi-input src" value="${data.src_other||0}"></td>
+            <td><input type="number" class="form-control form-control-sm text-end lbi-input intra" value="${data.out_intra||0}"></td>
+            <td><input type="number" class="form-control form-control-sm text-end lbi-input inter" value="${data.out_inter||0}"></td>
+            <td><input type="text" class="form-control form-control-sm text-end bg-readonly bal" readonly></td>
+            <td><input type="text" class="form-control form-control-sm text-end bg-readonly avg" readonly></td>
+            <td><input type="text" class="form-control form-control-sm text-end bg-readonly month" readonly></td>
+        `;
+        tbody.appendChild(tr);
+        tr.querySelectorAll('.lbi-input').forEach(i => i.addEventListener('input', calculateLbiRows));
+    }
+
+    function calculateLbiRows() {
+        document.querySelectorAll('#lbiTable tbody tr').forEach(tr => {
+            const open = parseFloat(tr.querySelector('.open').value) || 0;
+            const rec = parseFloat(tr.querySelector('.rec').value) || 0;
+            const src = parseFloat(tr.querySelector('.src').value) || 0;
+            const intra = parseFloat(tr.querySelector('.intra').value) || 0;
+            const inter = parseFloat(tr.querySelector('.inter').value) || 0;
+
+            const totalIn = open + rec + src;
+            const totalOut = intra + inter;
+            const balance = totalIn - totalOut;
+            
+            // Simplified calculation: Assuming data is for 11 months (Jan-Nov) based on CSV
+            const avgUsage = totalOut / 11; 
+            const stockMonths = avgUsage > 0 ? balance / avgUsage : 0;
+
+            tr.querySelector('.bal').value = balance.toFixed(2);
+            tr.querySelector('.avg').value = avgUsage.toFixed(2);
+            tr.querySelector('.month').value = stockMonths.toFixed(2);
+            
+            // Color code low stock
+            if(stockMonths < 1) tr.querySelector('.month').classList.add('text-danger', 'fw-bold');
+            else tr.querySelector('.month').classList.remove('text-danger', 'fw-bold');
+        });
+    }
+
+    // --- Charting Logic ---
+    function initCharts() {
+        // 1. Object Chart
+        const ctxObj = document.getElementById('objekChart').getContext('2d');
+        objekChart = new Chart(ctxObj, {
+            type: 'bar',
+            data: {
+                labels: ['27401 (Ubat)', '27403 (X-Ray)', '27404 (Kons)', '27499 (Lain)'],
+                datasets: [
+                    { label: 'Peruntukan', data: [0,0,0,0], backgroundColor: '#3498db' },
+                    { label: 'Perbelanjaan', data: [0,0,0,0], backgroundColor: '#e74c3c' }
+                ]
+            },
+            options: { responsive: true, scales: { y: { beginAtZero: true } } }
+        });
+
+        // 2. Vot Chart (Pie)
+        const ctxVot = document.getElementById('votChart').getContext('2d');
+        votChart = new Chart(ctxVot, {
+            type: 'doughnut',
+            data: {
+                labels: ['080700', '990100', 'Lain-lain'],
+                datasets: [{
+                    data: [30, 60, 10],
+                    backgroundColor: ['#2ecc71', '#9b59b6', '#95a5a6']
+                }]
+            }
+        });
+
+        // 3. KPI Trend
+        const ctxKpi = document.getElementById('kpiTrendChart').getContext('2d');
+        kpiTrendChart = new Chart(ctxKpi, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov'],
+                datasets: [
+                    { label: 'PKD Yan', data: [1.99, 1.96, 1.71, 1.56, 1.96, 2.03, 1.91, 1.53, 1.71, 1.67, 2.32], borderColor: '#34495e', tension: 0.1 },
+                    { label: 'KK Guar Chempedak', data: [2.78, 1.72, 1.44, 1.53, 1.46, 1.31, 1.15, 1.05, 0.8, 1.08, 2.57], borderColor: '#e67e22', tension: 0.1 }
+                ]
+            },
+            options: { responsive: true, interaction: { mode: 'index', intersect: false } }
+        });
+
+        // 4. Stock Dist Chart
+        const ctxDist = document.getElementById('stockDistChart').getContext('2d');
+        stockDistChart = new Chart(ctxDist, {
+            type: 'pie',
+            data: {
+                labels: ['Intra Fasiliti', 'Inter Fasiliti'],
+                datasets: [{
+                    data: [85, 15],
+                    backgroundColor: ['#1abc9c', '#f1c40f']
+                }]
+            }
+        });
+    }
+
+    function updateDashboard() {
+        calculateLbppTotals();
+        calculateLbiRows();
+
+        // --- Update Object Bar Chart ---
+        const objStats = {};
+        const votStats = {'080700': 0, '990100': 0, 'Others': 0};
+
+        document.querySelectorAll('#lbppTable tbody tr').forEach(tr => {
+            const obj = tr.querySelector('td:nth-child(2) select').value.substring(0,5);
+            const vot = tr.querySelector('td:nth-child(3) select').value;
+            const alloc = parseFloat(tr.querySelector('.val-alloc').value) || 0;
+            const add = parseFloat(tr.querySelector('.val-add').value) || 0;
+            const exp = parseFloat(tr.querySelector('.val-exp').value) || 0;
+            
+            const totalAlloc = alloc + add;
+            
+            // Object Stats
+            if (!objStats[obj]) objStats[obj] = { alloc: 0, exp: 0 };
+            objStats[obj].alloc += totalAlloc;
+            objStats[obj].exp += exp;
+
+            // Vot Stats
+            if (vot === '080700' || vot === '990100') votStats[vot] += exp;
+            else votStats['Others'] += exp;
+        });
+
+        // Update Object Chart
+        objekChart.data.labels = Object.keys(objStats);
+        objekChart.data.datasets[0].data = Object.values(objStats).map(x => x.alloc);
+        objekChart.data.datasets[1].data = Object.values(objStats).map(x => x.exp);
+        objekChart.update();
+
+        // Update Vot Chart
+        votChart.data.datasets[0].data = [votStats['080700'], votStats['990100'], votStats['Others']];
+        votChart.update();
+
+        // --- Update Stock Dist Chart ---
+        let intra = 0, inter = 0;
+        document.querySelectorAll('#lbiTable tbody tr').forEach(tr => {
+            intra += parseFloat(tr.querySelector('.intra').value) || 0;
+            inter += parseFloat(tr.querySelector('.inter').value) || 0;
+        });
+        stockDistChart.data.datasets[0].data = [intra, inter];
+        stockDistChart.update();
+
+        // --- Update KPI Chart (Simple Read from Inputs) ---
+        // For simplicity, we just reload the static values in the KPI table if they were dynamic inputs
+        // In a full app, we would loop through the KPI table columns.
+        const pkdRow = document.querySelector('#kpiTable tbody tr:first-child');
+        const kpiData = [];
+        pkdRow.querySelectorAll('input').forEach(inp => kpiData.push(parseFloat(inp.value) || null));
+        kpiTrendChart.data.datasets[0].data = kpiData;
+        kpiTrendChart.update();
+
+        alert("Dashboard Dikemaskini!");
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
